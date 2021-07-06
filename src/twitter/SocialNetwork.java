@@ -6,6 +6,7 @@ package twitter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -29,7 +30,39 @@ import java.util.HashMap;
  */
 public class SocialNetwork {
 
-    /**
+	/**
+     * Only rlevant for problem 4:
+     * Gets set of hashtags found in tweets.
+     * 
+     * @param tweets
+     *            a list of tweets providing the evidence, not modified by this
+     *            method.
+     * @return Set of hashtags mentioned in the text of the tweets.
+     *         A hashtag-mention is "#" followed by a word or words (as
+     *         
+     *         Hashtags are case-insensitive, and the returned set may
+     *         include a hashtag at most once.
+     */
+	public static Set<String> getHashtags(List<Tweet> tweets) {
+        //same process as with Extract.getMentionedUsers(List<Tweet> tweets)
+		Set<String> hashtags = new HashSet<>();
+    	for (Tweet tweet:tweets) {
+        	String text = tweet.getText();
+        	String [] words = text.split("\\s");
+        	for (String word:words) {
+        		if (Pattern.matches("#([A-Za-z0-9_-]+)", word)) {
+        			//only difference is "#" symbol is kept, opposed to "@" symbol in getMentionedUsers
+        			String newHashtag = word.toLowerCase();
+        			if (!hashtags.contains(newHashtag)) {
+        				hashtags.add(newHashtag);
+        			}
+        		}	
+        	}
+        }
+    	return hashtags;
+	}
+	
+	/**
      * Guess who might follow whom, from evidence found in tweets.
      * 
      * @param tweets
@@ -59,8 +92,6 @@ public class SocialNetwork {
 
         //for every author in tweets list
         for (String author:authors) {
-        	//filteredByAuthor.clear();
-        	//socialNetwork.clear();
         	//filter tweets by author
         	filteredByAuthor = Filter.writtenBy(tweets, author);
         	//get mentions
@@ -71,6 +102,40 @@ public class SocialNetwork {
         	}
         	//save mentions to map
         	socialNetworkMap.put(author, socialNetwork);
+        }
+        //if hashtags are found in set of tweets
+        if (!getHashtags(tweets).isEmpty()) {
+        	Set<String> hashtags = getHashtags(tweets);
+        	Map<String, Set<String>> sharedHashtags = new HashMap<>();
+        	//for each hashtag evaluate which user used it, filter tweets by user
+        	for (String hashtag:hashtags) {
+        		Set<String> usesHashtag = new HashSet<>();
+        		for (String author2:authors) {
+	        		List<Tweet> filteredByAuthor2 = Filter.writtenBy(tweets, author2);
+	        		for (Tweet tweet:filteredByAuthor2) {
+	        			if (tweet.getText().toLowerCase().contains(hashtag) && !usesHashtag.contains(author2)) {
+	        				usesHashtag.add(author2);
+	        			}
+	        		}
+	        	}
+        		//create map of hashtags, hashtag as key and sets of usernames as values
+        		sharedHashtags.put(hashtag, usesHashtag);
+        	}
+        	//if a map of hashtags was created
+	        if (!sharedHashtags.isEmpty()) {
+	        	//go trough sets of usernames
+	        	for (Set<String> userSet:sharedHashtags.values()) {
+	        		for (String user:userSet) {
+	        			//update set of usernames for social network map, only if network does't already exist
+	        			Set<String> updatedNetwork = socialNetworkMap.get(user);
+	        			for (String user2:userSet) {
+	        				if (!updatedNetwork.contains(user2) && user!=user2) {
+	        					updatedNetwork.add(user2);
+	        				}
+	        			}
+	        		}
+	        	}
+	        }
         }
         return socialNetworkMap;
     }
