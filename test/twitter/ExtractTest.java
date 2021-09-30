@@ -42,7 +42,7 @@ public class ExtractTest {
     private static final Tweet tweet4 = new Tweet(4, "bbitdiddle", "Maybe not for you @Aly_sa", d3);
     private static final Tweet tweet5 = new Tweet(5, "bbitdiddle", "Hello @Alysa maybe not for you", d3);
     private static final Tweet tweet6 = new Tweet(6, "bbitdiddle", "alysa@A1ysa maybe not for you", d3);
-    private static final Tweet tweet7 = new Tweet(6, "bbitdiddle", "Hey @a1ysa maybe not for you", d3);
+    private static final Tweet tweet7 = new Tweet(7, "bbitdiddle", "Hey @a1ysa maybe not for you", d3);
     
     @Test(expected=AssertionError.class)
     public void testAssertionsEnabled() {
